@@ -1,0 +1,33 @@
+name: Enforce C++ Linguist
+on:
+  push:
+    branches: [ main ]     # or master, whichever is your default
+    paths:
+      - '**/*.cpp'
+      - '**/*.hpp'
+      - '**/*.h'
+jobs:
+  fix_gitattributes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          persist-credentials: true  # this lets the Action push commits
+
+      - name: Ensure .gitattributes exists
+        run: |
+          mkdir -p "$(dirname .gitattributes)"
+          cat << 'EOF' > .gitattributes
+          *.cpp linguist-language=C++
+          *.hpp linguist-language=C++
+          *.h   linguist-language=C++
+          EOF
+
+      - name: Commit and push .gitattributes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .gitattributes
+          # only commit if changes exist
+          git diff --cached --quiet || git commit -m "chore: enforce C++ via Linguist"
+          git push
